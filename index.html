@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solo RPG Master Suite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           GLOBAL & MASTER NAVIGATION
+           ========================================= */
+        body { margin: 0; padding: 0; background-color: #111; font-family: 'Inter', sans-serif; min-height: 100vh; color: #e0e0e0; }
+        .master-nav { background-color: #0f172a; border-bottom: 2px solid #334155; display: flex; justify-content: center; position: sticky; top: 0; z-index: 9999; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .master-btn { background: transparent; color: #94a3b8; border: none; padding: 15px 25px; font-size: 1rem; font-weight: 700; cursor: pointer; border-bottom: 4px solid transparent; text-transform: uppercase; letter-spacing: 1px; }
+        .master-btn:hover { color: #f8fafc; background-color: #1e293b; }
+        .master-btn.active { color: #3b82f6; border-bottom: 4px solid #3b82f6; background-color: #1e293b; }
+        .view-section { display: none !important; padding-bottom: 50px; }
+        .view-section.active-view { display: block !important; }
+        #view-oracle.active-view { display: flex !important; }
+
+        /* =========================================
+           PAGE 1: ORACLE STYLES
+           ========================================= */
+        .oracle-scope { --or-accent: #8a4fff; padding: 20px; justify-content: center; background: #121212; }
+        .oracle-scope .container { max-width: 800px; width: 100%; display: flex; flex-direction: column; gap: 24px; }
+        .oracle-scope h1 { text-align: center; color: var(--or-accent); text-transform: uppercase; letter-spacing: 2px; font-size: 2em; font-weight: bold; }
+        .oracle-scope .section-card { background: #1e1e1e; border: 1px solid #333; border-radius: 12px; padding: 24px; }
+        .oracle-scope .card-header { font-size: 1.25rem; font-weight: bold; border-bottom: 2px solid var(--or-accent); padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; }
+        .oracle-scope button { width: 100%; padding: 14px; background: var(--or-accent); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .oracle-scope button:hover { background: #6d33d6; }
+        .oracle-scope input[type="range"] { width: 100%; accent-color: var(--or-accent); }
+        .oracle-scope .result-box { margin-top: 20px; padding: 15px; background: #2a2a2a; border-radius: 6px; border-left: 4px solid #a0a0a0; text-align: center; }
+        .oracle-scope .diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
+        .oracle-scope .diff-col { background: #252525; padding: 15px; border-radius: 6px; text-align: center; }
+        .oracle-scope .word-chip { background: #333; padding: 8px 14px; border-radius: 20px; border: 1px solid #444; display: inline-block; margin: 4px; }
+        .oracle-scope .word-chip span { color: var(--or-accent); font-weight: 900; }
+
+        /* =========================================
+           PAGE 2: WORLD ENGINE STYLES
+           ========================================= */
+        .world-scope { background: #1f2937; color: #f3f4f6; padding: 20px; }
+        .world-container { max-width: 900px; margin: 0 auto; }
+        .world-header { text-align: center; font-size: 1.8rem; font-weight: bold; margin-bottom: 20px; color: #e5e7eb; }
+        .world-tabs { display: flex; overflow-x: auto; border-bottom: 2px solid #4b5563; background: #111827; position: sticky; top: 60px; z-index: 50; padding-bottom: 0; margin-bottom: 20px; }
+        .world-tab-btn { background: transparent; color: #9ca3af; padding: 12px 16px; white-space: nowrap; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-weight: 600; }
+        .world-tab-btn:hover { color: white; background: #374151; }
+        .world-tab-btn.active { color: #3b82f6; border-color: #3b82f6; }
+        .world-pane { display: none; }
+        .world-pane.active { display: block; }
+        .w-card { background: #374151; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        .w-btn { width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; color: white; border: none; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
+        .w-btn:hover { filter: brightness(110%); }
+        .w-select, .w-input { width: 100%; padding: 10px; background: #4b5563; border: 1px solid #6b7280; color: white; border-radius: 6px; margin-bottom: 10px; font-size: 1rem; }
+        .text-sm { font-size: 0.875rem; } .text-xl { font-size: 1.25rem; } .text-2xl { font-size: 1.5rem; } .font-bold { font-weight: 700; } .font-semibold { font-weight: 600; }
+        .text-gray-300 { color: #d1d5db; } .text-gray-400 { color: #9ca3af; } .text-gray-500 { color: #6b7280; }
+        .bg-blue { background: #3b82f6; } .text-blue { color: #60a5fa; } .border-blue { border-color: #3b82f6; }
+        .bg-green { background: #10b981; } .text-green { color: #34d399; } .border-green { border-color: #10b981; }
+        .bg-red { background: #ef4444; } .text-red { color: #f87171; } .border-red { border-color: #ef4444; }
+        .bg-amber { background: #f59e0b; } .text-amber { color: #fbbf24; } .border-amber { border-color: #f59e0b; }
+        .bg-indigo { background: #6366f1; } .text-indigo { color: #818cf8; } .border-indigo { border-color: #6366f1; }
+        .border-l-4 { border-left-width: 4px; border-left-style: solid; }
+        .w-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .w-table th { text-align: left; padding: 10px; background: #1f2937; color: #9ca3af; }
+        .w-table td { padding: 10px; border-bottom: 1px solid #4b5563; color: #e5e7eb; vertical-align: top; }
+
+        /* =========================================
+           PAGE 3: TRACKER STYLES
+           ========================================= */
+        .tracker-scope { background: #121212; color: #e0e0e0; padding: 20px; }
+        .tracker-scope .controls { background: #1e1e1e; padding: 20px; border-radius: 8px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-bottom: 30px; border: 1px solid #444; }
+        .tracker-scope h1 { margin: 0; font-size: 1.5rem; font-weight: bold; color: white; margin-right: 20px; }
+        .tracker-scope input { padding: 10px; background: #252525; border: 1px solid #444; color: white; border-radius: 4px; }
+        .tracker-scope button { padding: 10px 15px; cursor: pointer; border-radius: 4px; border: 1px solid #444; color: white; font-weight: bold; }
+        .tracker-scope .btn-create { background: #0d47a1; border-color: #0d47a1; }
+        .tracker-scope .quest-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }
+        .tracker-scope .quest-card { background: #1e1e1e; border: 1px solid #444; border-radius: 8px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .tracker-scope .bar-container { height: 25px; background: #111; border-radius: 4px; position: relative; overflow: hidden; border: 1px solid #333; display: flex; margin: 5px 0; }
+        .tracker-scope .bar-fill { height: 100%; position: absolute; z-index: 1; transition: width 0.3s; }
+        .tracker-scope .fill-green { background: #2e7d32; } .tracker-scope .fill-red { background: #c62828; }
+        .tracker-scope .ticks-layer { position: absolute; inset: 0; display: flex; z-index: 2; }
+        .tracker-scope .tick { flex: 1; border-right: 1px solid rgba(0,0,0,0.5); }
+        .tracker-scope .track-controls { display: flex; gap: 5px; }
+        .tracker-scope .btn-plus-green { background: #2e7d32; flex: 1; border: none; }
+        .tracker-scope .btn-plus-red { background: #c62828; flex: 1; border: none; }
+        .tracker-scope .btn-minus { background: #333; width: 40px; border: none; }
+    </style>
+</head>
+<body>
+
+    <!-- MASTER NAV -->
+    <nav class="master-nav">
+        <button class="master-btn active" onclick="switchMasterView('oracle', this)">1. Oracle</button>
+        <button class="master-btn" onclick="switchMasterView('world', this)">2. World Engine</button>
+        <button class="master-btn" onclick="switchMasterView('tracker', this)">3. Quest Tracker</button>
+    </nav>
+
+    <!-- VIEW 1: ORACLE -->
+    <div id="view-oracle" class="view-section active-view oracle-scope">
+        <div class="container">
+            <h1>Solo RPG Oracle</h1>
+            <div class="section-card">
+                <div class="card-header">1. Narrative Oracle</div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display:flex; justify-content:space-between;"><span>Likelihood</span><span id="oddsText" style="color: var(--or-accent); font-weight:bold;">50/50</span></label>
+                    <input type="range" id="oddsSlider" min="1" max="9" value="5">
+                </div>
+                <button onclick="rollOracle()">Ask the Oracle</button>
+                <div class="result-box" id="oracleBox"><div class="oracle-main-text" style="color: #666;">---</div></div>
+            </div>
+            <div class="section-card">
+                <div class="card-header">2. Difficulty Generator</div>
+                <button onclick="rollDifficulty()">Roll Encounter</button>
+                <div class="result-box" style="display: block; border-left: 4px solid #00e676;">
+                    <div class="diff-grid">
+                        <div class="diff-col"><div style="font-size:0.8rem; color:#aaa;">Challenge (d100)</div><div class="diff-val" id="diffVertical">-</div></div>
+                        <div class="diff-col"><div style="font-size:0.8rem; color:#aaa;">Type (d6)</div><div class="diff-val" id="diffHorizontal">-</div></div>
+                    </div>
+                    <div id="diffDescription" style="margin-top:10px;">Roll to generate.</div>
+                </div>
+            </div>
+            <div class="section-card">
+                <div class="card-header">3. Inspiration Engine <span id="apiStatus" style="font-size:0.7rem; background:#333; padding:2px 5px; display:none;">OFFLINE</span></div>
+                <button id="wordBtn" onclick="fetchWords()">Generate Words</button>
+                <div class="result-box" id="wordContainer" style="display: block; border-left: 4px solid var(--or-accent);">
+                    <div id="wordGrid" style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px;"><span style="color: #666;">Waiting...</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW 2: WORLD ENGINE (Full Description Restored) -->
+    <div id="view-world" class="view-section world-scope">
+        <div class="world-container">
+            <h1 class="world-header">Solo World Engine V11</h1>
+            
+            <div class="world-tabs">
+                <button class="world-tab-btn active" onclick="openWorldTab('tab-action', this)">Action Oracle</button>
+                <button class="world-tab-btn" onclick="openWorldTab('tab-sensory', this)">Sensory</button>
+                <button class="world-tab-btn" onclick="openWorldTab('tab-battle', this)">Battle AI</button>
+                <button class="world-tab-btn" onclick="openWorldTab('tab-dice', this)">Dice</button>
+                <button class="world-tab-btn" onclick="openWorldTab('tab-manager', this)">World Engine</button>
+                <button class="world-tab-btn" onclick="openWorldTab('tab-lexicon', this)">Lexicon</button>
+                <button class="world-tab-btn" onclick="openWorldTab('tab-guide', this)">Guides</button>
+            </div>
+
+            <!-- Tab 1: Action Oracle -->
+            <div id="tab-action" class="world-pane active">
+                <div class="w-card">
+                    <h2 class="text-xl font-semibold text-gray-300 mb-4">Action-Triggered Oracle Generator</h2>
+                    <select id="action-result" class="w-select">
+                        <option value="success">Success (Fortune)</option>
+                        <option value="failure">Failure (Misfortune)</option>
+                        <option value="general">Neutral (General Mood)</option>
+                    </select>
+                    <button class="w-btn bg-green" onclick="generateOracleResult('action')">GENERATE ACTION RESULT</button>
+                </div>
+                <div id="oracle-result-area" class="w-card border-l-4 border-blue">
+                    <h3 class="text-2xl font-bold text-blue mb-3">Welcome to the Solo World Engine!</h3>
+                    <p class="text-gray-300">Use the generator above to create focused, GM-less narrative prompts.</p>
+                </div>
+            </div>
+
+            <!-- Tab 2: Sensory -->
+            <div id="tab-sensory" class="world-pane">
+                <div class="w-card">
+                    <h2 class="text-xl font-semibold text-gray-300 mb-4">Sensory Filter Oracle</h2>
+                    <button class="w-btn bg-green" onclick="generateOracleResult('sensory')">ROLL SENSE & GENERATE DISCOVERY</button>
+                </div>
+                <div id="sensory-result-area" class="w-card border-l-4 border-amber">
+                    <h3 class="text-2xl font-bold text-amber mb-3">Roll for a Discovery Prompt</h3>
+                </div>
+            </div>
+
+            <!-- Tab 3: Battle AI -->
+            <div id="tab-battle" class="world-pane">
+                <div class="w-card">
+                    <h2 class="text-xl font-semibold text-gray-300 mb-4">Enemy Battle AI (d6 Action + d100 Ultimate)</h2>
+                    <p class="text-sm text-gray-400 mb-4">Determines the enemy's next major move. Ultimate Attacks trigger on a d100 roll of 90 or higher.</p>
+                    <button class="w-btn bg-red" onclick="rollBattleAI()">ROLL ENEMY ACTION</button>
+                </div>
+                <div id="battle-ai-result" class="w-card border-l-4 border-red">
+                    <h3 class="text-2xl font-bold text-red mb-3">Enemy Awaits Orders</h3>
+                    <p class="text-gray-300">Roll to determine the enemy's tactical decision for the current round.</p>
+                </div>
+            </div>
+
+            <!-- Tab 4: Dice -->
+            <div id="tab-dice" class="world-pane">
+                <div class="w-card">
+                    <h2 class="text-xl font-semibold text-gray-300 mb-4">Polyhedral Command Dice Roller</h2>
+                    <div style="display:flex; gap:5px; margin-bottom:10px; flex-wrap:wrap;">
+                        <button style="background:#4b5563; border:none; color:white; padding:5px 10px; border-radius:4px; cursor:pointer;" onclick="rollDiceCommand('1d4')">1d4</button>
+                        <button style="background:#4b5563; border:none; color:white; padding:5px 10px; border-radius:4px; cursor:pointer;" onclick="rollDiceCommand('1d6')">1d6</button>
+                        <button style="background:#4b5563; border:none; color:white; padding:5px 10px; border-radius:4px; cursor:pointer;" onclick="rollDiceCommand('1d8')">1d8</button>
+                        <button style="background:#4b5563; border:none; color:white; padding:5px 10px; border-radius:4px; cursor:pointer;" onclick="rollDiceCommand('1d20')">1d20</button>
+                        <button style="background:#4b5563; border:none; color:white; padding:5px 10px; border-radius:4px; cursor:pointer;" onclick="rollDiceCommand('1d100')">1d100</button>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="dice-command-input" placeholder="e.g. 2d8+3" class="w-input" style="margin:0;">
+                        <button class="w-btn bg-red" style="width:auto; margin:0;" onclick="rollFromInput()">Roll</button>
+                    </div>
+                </div>
+                <div id="dice-output-area" class="w-card border-l-4 border-red">
+                    <h3 class="text-2xl font-bold text-red mb-3">Dice Roll Results</h3>
+                </div>
+                <div class="w-card">
+                    <h4>Roll History</h4>
+                    <div id="dice-history-log"></div>
+                </div>
+            </div>
+
+            <!-- Tab 5: Manager -->
+            <div id="tab-manager" class="world-pane">
+                <h2 class="text-xl font-semibold text-gray-300 mb-4">World Engine Systems</h2>
+                <div class="w-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="text-green font-bold">Weather Engine (d10)</span>
+                        <button class="bg-green" style="border:none; color:white; padding:5px 10px; border-radius:15px; cursor:pointer;" onclick="rollWeather()">Roll Weather</button>
+                    </div>
+                    <div id="weather-result" style="margin-top:10px; padding:10px; background:#1f2937; border-radius:6px; text-align:center;">Roll to determine condition.</div>
+                </div>
+                <div class="w-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="text-green font-bold">Downtime Turn Tick (d6)</span>
+                        <button class="bg-green" style="border:none; color:white; padding:5px 10px; border-radius:15px; cursor:pointer;" onclick="rollDowntimeTick()">Tick World</button>
+                    </div>
+                    <div id="downtime-result" style="margin-top:10px; padding:10px; background:#1f2937; border-radius:6px; text-align:center;">Roll to advance the world state.</div>
+                </div>
+                <div class="w-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="text-green font-bold">Rumor Mill (3 Words)</span>
+                        <button class="bg-green" style="border:none; color:white; padding:5px 10px; border-radius:15px; cursor:pointer;" onclick="generateRumor()">Generate Rumor</button>
+                    </div>
+                    <div id="rumor-result" style="margin-top:10px; padding:10px; background:#1f2937; border-radius:6px; text-align:center;">Rumors reveal ongoing events in the world.</div>
+                </div>
+                <div class="w-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="text-red font-bold">Thematic Distress Hook</span>
+                        <button class="bg-red" style="border:none; color:white; padding:5px 10px; border-radius:15px; cursor:pointer;" onclick="generateThematicHook()">Generate Distress</button>
+                    </div>
+                    <div id="thematic-hook-result" style="margin-top:10px; padding:10px; background:#1f2937; border-radius:6px; text-align:center;">Click the button to roll a thematic prompt.</div>
+                </div>
+            </div>
+
+            <!-- Tab 6: Lexicon -->
+            <div id="tab-lexicon" class="world-pane">
+                <div class="w-card">
+                    <h2 class="text-xl font-semibold text-gray-300 mb-4">Lexicon Expansion Tool</h2>
+                    <p class="text-sm text-gray-400 mb-4">Generates 10 unique Adjectives/Verbs.</p>
+                    <button class="w-btn bg-indigo" onclick="generateConstrainedWords()">GENERATE 10 CONSTRAINED WORDS</button>
+                </div>
+                <div id="word-expansion-result" class="w-card border-l-4 border-indigo">
+                    <h3 class="text-2xl font-bold text-indigo mb-3">New Words for Spontaneity</h3>
+                    <p class="text-gray-300">Click the button to generate.</p>
+                </div>
+            </div>
+
+            <!-- Tab 7: Guide -->
+            <div id="tab-guide" class="world-pane">
+                <div class="w-card">
+                    <h3>Interpretation Guide (d6)</h3>
+                    <div id="interpretation-guide-table" style="overflow-x:auto;"></div>
+                </div>
+                <div class="w-card">
+                    <h3>Element Link System (d8)</h3>
+                    <div id="element-link-table" style="overflow-x:auto;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW 3: TRACKER -->
+    <div id="view-tracker" class="view-section tracker-scope">
+        <div class="controls">
+            <h1>Quest Tracker</h1>
+            <input type="text" id="newQuestName" placeholder="Quest Name" style="width:250px;">
+            <input type="number" id="newQuestLength" placeholder="5" value="5" min="2" max="50" style="width:60px;">
+            <button class="btn-create" onclick="addQuest()">+ Add Quest</button>
+        </div>
+        <div class="quest-grid" id="questContainer"></div>
+    </div>
+
+
+    <script>
+        // --- NAVIGATION ---
+        function switchMasterView(id, btn) {
+            document.querySelectorAll('.view-section').forEach(e=>e.classList.remove('active-view'));
+            document.querySelectorAll('.master-btn').forEach(e=>e.classList.remove('active'));
+            document.getElementById('view-'+id).classList.add('active-view');
+            btn.classList.add('active');
+        }
+        function openWorldTab(id, btn) {
+            document.querySelectorAll('.world-pane').forEach(e=>e.classList.remove('active'));
+            document.querySelectorAll('.world-tab-btn').forEach(e=>e.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        // --- PAGE 1: ORACLE LOGIC ---
+        const oddsMap=[{label:"Impossible",th:10},{label:"Very Unlikely",th:25},{label:"Unlikely",th:35},{label:"Unsure",th:45},{label:"50/50",th:50},{label:"Likely",th:65},{label:"Very Likely",th:75},{label:"Near Sure",th:85},{label:"Sure Thing",th:95}];
+        document.getElementById('oddsSlider').oninput = (e) => document.getElementById('oddsText').innerText = oddsMap[e.target.value-1].label;
+        function rollOracle(){
+            const th=oddsMap[document.getElementById('oddsSlider').value-1].th;
+            const r=Math.floor(Math.random()*100)+1;
+            let txt="", col="";
+            if(r<=th) { txt = (r%11===0||r===100)?"YES, AND...":(r%2!==0?"YES, BUT...":"YES"); col=txt.includes("AND")?"#00e676":txt.includes("BUT")?"#b9f6ca":"#69f0ae"; }
+            else { txt = (r%11===0)?"NO, AND...":(r%2!==0?"NO, BUT...":"NO"); col=txt.includes("AND")?"#d50000":txt.includes("BUT")?"#ff8a80":"#ff5252"; }
+            document.getElementById('oracleBox').innerHTML = `<div class="oracle-main-text" style="color:${col}">${txt}</div><div style="font-size:0.9rem; color:#888;">Rolled ${r} vs ${th}</div>`;
+            document.getElementById('oracleBox').style.borderLeftColor = col;
+        }
+        function rollDifficulty(){
+            const d100=Math.floor(Math.random()*100)+1, d6=Math.floor(Math.random()*6)+1;
+            const txt = d100<=15?"Trivial":d100<=40?"Easy":d100<=65?"Moderate":d100<=85?"Hard":"Impossible";
+            const col = d100<=15?"#aaa":d100<=40?"#00e676":d100<=65?"#ffd740":d100<=85?"#ff9100":"#ff5252";
+            const dom=["Physical","Agility","Mental","Social","Technical","Mystical"][d6-1];
+            document.getElementById('diffVertical').innerHTML=`<span style="color:${col}">${d100}</span><span style="display:block;font-size:0.7em;color:#ccc">${txt}</span>`;
+            document.getElementById('diffHorizontal').innerText=dom;
+            document.getElementById('diffDescription').innerHTML=`A <strong>${txt}</strong> challenge testing <strong>${dom}</strong>.`;
+        }
+        async function fetchWords(){
+            const box=document.getElementById('wordGrid'); box.innerHTML="Loading...";
+            try {
+                const r=await fetch('https://random-word-api.vercel.app/api?words=60',{signal:AbortSignal.timeout(3000)});
+                const d=await r.json(); document.getElementById('apiStatus').style.display="none";
+                const u=new Set(), f=[];
+                for(let w of d){ if(w.length>=4 && !u.has(w[0])){ u.add(w[0]); f.push(w); if(f.length===10)break; }}
+                box.innerHTML=f.map(w=>`<div class="word-chip"><span>${w[0]}</span>${w.slice(1)}</div>`).join('');
+            } catch(e) { document.getElementById('apiStatus').style.display="inline"; box.innerHTML="Offline Mode."; }
+        }
+
+        // --- PAGE 2: WORLD ENGINE LOGIC (FULL DETAIL) ---
+        const FANTASY_WORDS_DISTRESS = ["Ache", "Agony", "Anguish", "Anxious", "Ashen", "Aura", "Bound", "Broken", "Caged", "Captive", "Chain", "Coerced", "Collapse", "Cradle", "Crying", "Damage", "Daring", "Darkness", "Defiant", "Despair", "Desperate", "Detained", "Disguise", "Distress", "Doll", "Doom", "Doubt", "Drawn", "Enclosed", "Endure", "Escape", "Fading", "Faint", "Fear", "Feeble", "Fetter", "Frail", "Fragile", "Freedom", "Gasp", "Grave", "Grief", "Guarded", "Haunted", "Hidden", "Hollow", "Hopeless", "Humble", "Imprisoned", "Innocent", "Iron", "Jewel", "Lace", "Lament", "Lonely", "Loss", "Maiden", "Memory", "Mercy", "Misery", "Muted", "Needle", "Noble", "Orphan", "Panic", "Plea", "Poverty", "Precious", "Prison", "Purity", "Ransom", "Ravage", "Rescue", "Restrained", "Revolt", "Rope", "Ruined", "Sacrifice", "Savage", "Scarred", "Secret", "Shackled", "Shelter", "Shrine", "Silent", "Sorrow", "Strain", "Suffer", "Suppressed", "Thief", "Throat", "Tower", "Treason", "Trapped", "Trial", "Unseen", "Urgent", "Veiled", "Vengeance", "Victim", "Vigil", "Virtue", "Vulnerable", "Wail", "Warden", "Weak", "Weeping", "Woe", "Wretch", "Yoke"];
+        const FANTASY_WORDS_GENERAL = ["Abyss", "Alchemy", "Ancient", "Anvil", "Arbiter", "Arch", "Armor", "Artifact", "Ash", "Aura", "Axe", "Baleful", "Bane", "Bard", "Bastion", "Beacon", "Beast", "Betrayal", "Blacksmith", "Blade", "Blessing", "Blizzard", "Blood", "Blight", "Bramble", "Brigand", "Bronze", "Brotherhood", "Burial", "Cairn", "Candle", "Canyon", "Caravan", "Catacomb", "Cauldron", "Cave", "Chalice", "Chaos", "Charm", "Chasm", "Chimera", "Cinder", "Citadel", "Clay", "Cloven", "Coil", "Comet", "Conqueror", "Corpse", "Crest", "Crown", "Crucible", "Crypt", "Crystal", "Cult", "Curse", "Dagger", "Dam", "Damp", "Dazzle", "Decree", "Deep", "Defeat", "Den", "Desolate", "Devour", "Dungeon", "Dust", "Dwarf", "Echo", "Elder", "Elixir", "Emerald", "Empire", "Enchant", "Enigma", "Ethereal", "Exile", "Fable", "Falcon", "Famine", "Fate", "Feral", "Fever", "Feud", "Fjord", "Flagon", "Flame", "Flicker", "Forest", "Fortress", "Fracture", "Frost", "Gallows", "Gargoyle", "Garrison", "Gate", "Gauntlet", "Ghoul", "Giant", "Glacier", "Glimmer", "Goblin", "Grave", "Grim", "Grove", "Guild", "Hail", "Halberd", "Hammer", "Hearth", "Heir", "Herald", "Hermit", "Hex", "Horde", "Horror", "Hovel", "Husk", "Idol", "Ignite", "Illusion", "Infection", "Inferno", "Intrigue", "Iron", "Island", "Jade", "Jailer", "Joust", "Jungle", "Keep", "Kin", "Kingly", "Kraken", "Labyrinth", "Lance", "Legacy", "Legend", "Lich", "Loom", "Loot", "Lore", "Magic", "Malice", "Marsh", "Masque", "Maze", "Memory", "Mercenary", "Miasma", "Minotaur", "Mire", "Monastery", "Monster", "Moondial", "Mourn", "Mushroom", "Mystic", "Necromancy", "Nexus", "Nightfall", "Nomad", "Oath", "Obsidian", "Omen", "Oracle", "Outlaw", "Paladin", "Panic", "Parchment", "Penance", "Phantom", "Pillage", "Pinnacle", "Plague", "Portal", "Potion", "Prophecy", "Pyramid", "Quarry", "Quest", "Quiver", "Rage", "Raid", "Rampart", "Relic", "Reptile", "Rift", "Rogue", "Ruins", "Rune", "Sable", "Sanctuary", "Sarcophagus", "Savage", "Scroll", "Sentinel", "Serpent", "Shade", "Shadow", "Shaman", "Siege", "Sigil", "Silver", "Slayer", "Specter", "Spell", "Spire", "Stalwart", "Starfall", "Statue", "Stealth", "Storm", "Swamp", "Sword", "Talisman", "Tavern", "Temple", "Terror", "Throne", "Tomb", "Torch", "Totem", "Treasure", "Tribe", "Tundra", "Turret", "Undead", "Unseen", "Vagrant", "Vampire", "Vault", "Venom", "Veteran", "Vial", "Vicious", "Village", "Void", "Vortex", "Vow", "Wanderer", "Warlord", "Wasteland", "Witch", "Wizened", "Wold", "Wraith", "Wreck", "Wyvern", "Yawn", "Zealot", "Zenith", "Whisper", "Vibrant", "Valiant", "Tainted", "Sturdy", "Raging", "Quaking", "Pivotal", "Ochre", "Noxious", "Misty", "Lethal", "Kinetic", "Jaded", "Iridescent", "Harrowing", "Gilded", "Flickering", "Errant", "Dizzy", "Cracked", "Bellowing", "Azure", "Abrupt", "Cloaked", "Distant", "Ensnared", "Felon", "Gnarled", "Hauberk", "Jester", "Looming", "Marauder", "Outcast", "Pagan", "Quagmire", "Reckless", "Squalid", "Vagabond", "Wallow", "Yonder", "Zircon", "Amulet", "Binding", "Conclave", "Drifter", "Emissary", "Fealty", "Glimpse", "Harrow", "Infernal", "Journey", "Knave", "Lamentation", "Marauding", "Obelisk", "Pilgrim", "Rapture"]; 
+        const ADJ_VERB_LEXICON = ["Abhor", "Act", "Adapt", "Adhere", "Affect", "Alert", "Amazing", "Ancient", "Annoy", "Awe", "Baffle", "Brave", "Bound", "Break", "Bristle", "Burn", "Busy", "Bypass", "Calculate", "Capture", "Careful", "Charming", "Clean", "Climb", "Coerce", "Coiled", "Collapse", "Command", "Confuse", "Corrupt", "Crawl", "Creep", "Cruel", "Cry", "Damp", "Daring", "Dark", "Deceive", "Decide", "Deepen", "Defeat", "Defy", "Dense", "Destroy", "Dig", "Divert", "Divine", "Doze", "Dreamy", "Dread", "Drift", "Dwell", "Eager", "Earnest", "Echo", "Edible", "Elaborate", "Electrify", "Empty", "Engage", "Ensnare", "Erase", "Exotic", "Expand", "Faint", "Fall", "Far", "Fast", "Fearful", "Fetter", "Fight", "Find", "Fleet", "Flow", "Forbid", "Force", "Forgive", "Fragrant", "Frenzy", "Frighten", "Furious", "Gallop", "Gasp", "Giddy", "Gigantic", "Give", "Gleam", "Glitch", "Go", "Grave", "Grim", "Grow", "Grumpy", "Guard", "Guide", "Gullible", "Halt", "Handle", "Happy", "Harden", "Hasten", "Haunt", "Heavy", "Hide", "Hilarious", "Honest", "Hopeful", "Humble", "Hurry", "Ignore", "Imagine", "Imitate", "Immense", "Impact", "Imply", "Inert", "Infect", "Influence", "Intense", "Intrigue", "Invade", "Invisible", "Iron", "Irritable", "Isolate", "Jab", "Jaded", "Jail", "Jiggle", "Jolly", "Judge", "Jump", "Justify", "Keen", "Keep", "Kick", "Kind", "Know", "Knuckle", "Lament", "Laugh", "Lazy", "Leap", "Lethal", "Lie", "Light", "Limp", "Listen", "Lively", "Long", "Look", "Lose", "Loving", "Mad", "Make", "Manage", "Manic", "Marvel", "Massive", "Measure", "Mellow", "Mend", "Mighty", "Mild", "Mine", "Miss", "Mist", "Moan", "Modify", "Move", "Mute", "Nail", "Nasty", "Near", "Need", "Negotiate", "Nervous", "Neutral", "Nudge", "Nurture", "Obey", "Observe", "Occult", "Offend", "Open", "Operate", "Oppose", "Ornate", "Oust", "Outrun", "Overcome", "Oversight", "Pace", "Panic", "Paralyze", "Pass", "Peaceful", "Perplex", "Persist", "Pester", "Pierce", "Pity", "Placate", "Plot", "Polite", "Possess", "Practice", "Praise", "Prepare", "Press", "Protect", "Punish", "Push", "Puzzling", "Quake", "Qualify", "Quarrel", "Queer", "Question", "Quick", "Quiet", "Quiver", "Quote", "Radiant", "Rage", "Raise", "Rapid", "Ravage", "Reckless", "Recall", "Redeem", "Refuse", "Release", "Relish", "Renounce", "Rest", "Reveal", "Revolt", "Ride", "Riot", "Rise", "Roam", "Robust", "Rude", "Ruin", "Run", "Safe", "Savage", "Scarce", "Scare", "Scheme", "Search", "Secure", "Seize", "Select", "Serve", "Severe", "Shake", "Sharp", "Shine", "Shout", "Show", "Silent", "Sink", "Skittish", "Sleep", "Slumber", "Smart", "Smooth", "Snarl", "Solemn", "Solve", "Speak", "Spicy", "Spin", "Startle", "Steal", "Stealthy", "Stern", "Sting", "Strange", "Strong", "Stun", "Stupid", "Submit", "Subtle", "Succeed", "Suffer", "Summon", "Super", "Survive", "Swallow", "Swift", "Swing", "Taint", "Take", "Talk", "Tame", "Tear", "Terrify", "Think", "Thorny", "Threaten", "Throw", "Tight", "Timely", "Tire", "Tolerate", "Torment", "Total", "Touch", "Toxic", "Trail", "Tramp", "Trap", "Travel", "Treacherous", "Tremble", "Tricky", "Triumph", "Trust", "Try", "Twist", "Ugly", "Uncover", "Unravel", "Unseen", "Unusual", "Upset", "Urgent", "Use", "Vague", "Vanish", "Vast", "Veil", "Vengeful", "Vibrate", "Vicious", "Victorious", "Violent", "Visit", "Vivid", "Void", "Vote", "Vulnerable", "Wail", "Wait", "Wander", "Warlike", "Warm", "Warn", "Wary", "Waste", "Watch", "Weak", "Weary", "Weave", "Weird", "Whisper", "Wield", "Wild", "Win", "Wipe", "Wise", "Wish", "Witness", "Wobble", "Worry", "Wound", "Wrestle", "Write", "Yawn", "Yell", "Yield", "Young", "Yummy", "Zap", "Zealous", "Zip", "Zone", "Zoom"];
+
+        function d(n){return Math.floor(Math.random()*n)+1;}
+        function getWords(n, pool='gen'){
+            const p = pool==='distress'?FANTASY_WORDS_DISTRESS:[...FANTASY_WORDS_GENERAL,...FANTASY_WORDS_DISTRESS];
+            let res=[]; for(let i=0;i<n;i++) res.push(p[d(p.length)-1]);
+            return res;
+        }
+
+        // Detailed Data Tables (Restored from Original)
+        const INTERP_GUIDE = {
+            general: [["Escalation/Conflict", "Danger, Difficulty", "Worsens situation"], ["Unexpected Complication", "Distraction, Delay", "Demands attention"], ["Hidden Truth Revealed", "Secrets, Motives", "Provides info"], ["Twist", "Mixed Result", "Success w/ cost"], ["Silver Lining", "Partial Success", "Fail w/ clue"], ["Success", "Victory", "Clean win"]],
+            success: [["Material Gain", "Loot", "Useful item"], ["Advantage", "Position", "Tactical edge"], ["Info", "Clue", "Knowledge"], ["Favor", "Social", "Ally"], ["Reduced Threat", "Safety", "Enemy gone"], ["Opportunity", "Path", "New option"]],
+            failure: [["Resource Loss", "Waste", "Lost item"], ["Worse Position", "Trapped", "Bad spot"], ["Damage", "Harm", "HP loss"], ["Escalation", "Foes", "More enemies"], ["Reputation Loss", "Social", "Lost trust"], ["Delay", "Time", "Too late"]]
+        };
+        const EL_LINKS = [["Player->NPC", "Reaction caused by Player"], ["NPC->Player", "Challenge caused by NPC"], ["Player->Env", "Env change by Player"], ["Env->Player", "Hazard/Opportunity"], ["NPC->Env", "Trap/Path reveal"], ["Env->NPC", "NPC aided/impeded"], ["Party->Party", "Internal conflict"], ["Wild Card", "Roll again"]];
+        
+        const ENEMY_ACTIONS_DETAILED = [
+            ["Assault / Attack", "Direct, damaging, aggressive action against the most vulnerable target."],
+            ["Protect / Defend", "Fortify position, guard an objective, or raise defenses against specific damage types."],
+            ["Restrain / Bondage", "Immobilize, trap, or remove a player from the action using bonds or psychic force."],
+            ["Bolster / Buff", "Increase its own power, grant status effects to allies, or prepare a devastating move for the next turn."],
+            ["Torment / Debuff", "Inflict negative status, sap resources, or demoralize the target (mental or magical attack)."],
+            ["Maneuver", "Change position, gain tactical advantage, retreat slightly, or summon minor allies."]
+        ];
+
+        const WEATHER_DETAILED = [
+            ["Clear Skies, Calm", "Perfect conditions. No effect."],
+            ["Overcast, Chilly", "Aesthetic change only."],
+            ["Light Rain/Mist", "Minor visual impairment. Slight risk of slippery surfaces."],
+            ["Heavy Fog/Smog", "Visibility reduced (Disadvantage on ranged rolls)."],
+            ["Steady Rain", "Movement slowed (All land movement costs 1 extra point)."],
+            ["Thunderstorm", "Combat/Stealth impaired (Disadvantage on all rolls)."],
+            ["Heavy Snow/Sleet", "Severe movement penalty (Half speed). Extreme cold."],
+            ["High Winds", "Ranged attacks impaired (Disadvantage on all ranged rolls). Loud noise."],
+            ["Extreme Heat/Drought", "Characters gain 1 Exhaustion/Dehydration check if exposed for a long time."],
+            ["Unnatural Phenomenon", "Roll a separate General Mood Oracle for the event."]
+        ];
+
+        const DOWNTIME_DETAILED = [
+            ["Recovery and Healing", "Heal 1 Stress/Minor Wound on all PCs. Replenish minor resources."],
+            ["Discovery and Insight", "Roll the Sensory Oracle (Tab 2) to reveal an unexpected piece of information about the area."],
+            ["Expense and Upkeep", "Lose 1 Resource unit (e.g., supplies, money). A small debt or payment is required."],
+            ["Friction and Internal Conflict", "Roll the Party → Party link on the Element Link table to resolve a group dynamic."],
+            ["Disturbance and Opportunity", "Roll the Rumor Mill (in this tab) to generate a new, immediate plot hook."],
+            ["Status Change", "A significant faction/environmental status changes by 1 (e.g., enemy defenses improve, local morale drops)."]
+        ];
+
+        function generateOracleResult(type) {
+            let guideKey='general', title="Final Action Prompt", color="border-blue", titleColor="text-blue";
+            let target = 'oracle-result-area';
+            
+            if(type==='action') {
+                guideKey = document.getElementById('action-result').value;
+                if(guideKey==='failure') { color="border-red"; titleColor="text-red"; }
+            } else {
+                title="Sensory Discovery Prompt"; color="border-amber"; titleColor="text-amber"; target='sensory-result-area';
+            }
+
+            const intr = INTERP_GUIDE[guideKey][d(6)-1];
+            const link = EL_LINKS[d(8)-1];
+            const words = getWords(3);
+            
+            let sensoryHtml = "";
+            if(type==='sensory'){
+                const s = ["Sight (Visual Clues)", "Touch (Texture, Temp)", "Smell (Chemicals, Decay)", "Hearing (Voices, Echoes)", "Taste (Potency, Edibility)", "Sixth Sense (Precognition)"][d(6)-1];
+                sensoryHtml = `<div class="w-card border-l-4 border-red"><p class="text-sm font-bold text-red">0. Sense Rolled</p><p class="text-xl font-bold">${s}</p></div>`;
+            }
+
+            const html = `
+                <h3 class="text-2xl font-bold ${titleColor} mb-4">${title}</h3>
+                ${sensoryHtml}
+                <div class="mb-6 space-y-4">
+                    <div class="w-card border-l-4 border-green">
+                        <p class="text-sm font-bold text-green">1. Interpretation Guide (d6: ${d(6)})</p>
+                        <p class="text-xl font-bold">${intr[0]}</p>
+                        <p class="text-sm text-gray-400">Focus: ${intr[1]}</p>
+                        <p class="text-xs text-gray-500">(${intr[2]})</p>
+                    </div>
+                    <div class="w-card border-l-4 border-amber">
+                        <p class="text-sm font-bold text-amber">2. Element Link (d8: ${d(8)})</p>
+                        <p class="text-xl font-bold">${link[0]}</p>
+                        <p class="text-sm text-gray-400">${link[1]}</p>
+                    </div>
+                </div>
+                <div class="text-center p-6 w-card bg-gray-600">
+                    <p class="text-sm font-medium text-gray-300 mb-2">3. Random Words</p>
+                    <p class="text-4xl font-extrabold text-white tracking-widest">${words[0].toUpperCase()} & <span class="text-blue">${words[1].toUpperCase()}</span></p>
+                    <p class="text-xl font-bold text-gray-300 mt-1">${words[2].toUpperCase()}</p>
+                </div>
+                <div class="mt-6 p-4 border border-gray-500 rounded-lg bg-gray-700">
+                    <p class="text-lg font-semibold text-red mb-2">INTERPRETATION TASK:</p>
+                    <p class="text-gray-200">Interpret **${words.join(', ')}** to describe an event resulting in **${intr[0]}** connecting **${link[0]}**.</p>
+                </div>`;
+            document.getElementById(target).innerHTML = html;
+        }
+
+        function rollBattleAI() {
+            const d100 = d(100), d6 = d(6);
+            let action = ENEMY_ACTIONS_DETAILED[d6-1];
+            let isUlt = d100 >= 90;
+            let title = isUlt ? "ULTIMATE ATTACK!" : action[0];
+            let desc = isUlt ? "The enemy uses its most devastating ability. Massive damage or world-changing effect!" : action[1];
+            
+            const w = getWords(2, isUlt?'distress':'gen');
+            
+            document.getElementById('battle-ai-result').innerHTML = `
+                <div class="space-y-4">
+                    <p class="text-lg text-gray-300">Rolls: d100=${d100}, d6=${d6}</p>
+                    <div class="w-card border-l-4 ${isUlt?'border-red':'border-green'}">
+                        <p class="text-sm font-bold text-gray-400">Enemy Action</p>
+                        <h3 class="text-2xl font-bold ${isUlt?'text-red':'text-white'}">${title}</h3>
+                        <p class="text-gray-300 mt-2">${desc}</p>
+                    </div>
+                    <div class="w-card border-l-4 border-amber">
+                        <p class="text-sm font-bold text-amber">Thematic Intent</p>
+                        <p class="text-xl font-bold text-white">${w[0].toUpperCase()} & ${w[1].toUpperCase()}</p>
+                    </div>
+                </div>`;
+        }
+
+        let dh=[];
+        function rollDiceCommand(c){
+            const clean=c.toLowerCase().replace(/\s/g,'');
+            const m=clean.match(/^(\d*)d(\d+)([+\-]\d+)?$/);
+            if(!m) return;
+            const n=parseInt(m[1])||1, s=parseInt(m[2]), mod=parseInt(m[3])||0;
+            let tot=0, rolls=[]; for(let i=0;i<n;i++){const r=d(s);rolls.push(r);tot+=r;}
+            const final=tot+mod;
+            document.getElementById('dice-output-area').innerHTML=`<h3 class="text-4xl font-extrabold text-red mb-2">Total: ${final}</h3><p class="text-lg text-gray-300">${n}d${s}${mod?((mod>0?'+':'')+mod):''} -> [${rolls.join(', ')}]</p>`;
+            dh.unshift(`${final} (${clean})`); if(dh.length>10)dh.pop();
+            document.getElementById('dice-history-log').innerHTML=dh.map(x=>`<div style="background:#4b5563;padding:8px;margin-bottom:4px;border-left:3px solid #ef4444">${x}</div>`).join('');
+        }
+        function rollFromInput(){ rollDiceCommand(document.getElementById('dice-command-input').value); }
+
+        function rollWeather(){ 
+            const w = WEATHER_DETAILED[d(10)-1];
+            document.getElementById('weather-result').innerHTML = `<p class="text-xl font-bold text-green">${w[0]}</p><p class="text-gray-400 mt-1">${w[1]}</p>`; 
+        }
+        function rollDowntimeTick(){ 
+            const e = DOWNTIME_DETAILED[d(6)-1];
+            document.getElementById('downtime-result').innerHTML = `<p class="text-xl font-bold text-green">${e[0]}</p><p class="text-gray-400 mt-1">${e[1]}</p>`; 
+        }
+        function generateRumor(){ 
+            const w = getWords(3);
+            const t = ["A specific NPC", "A powerful Faction", "An important Ally", "The local Environment"][d(4)-1];
+            document.getElementById('rumor-result').innerHTML = `
+                <p class="text-lg text-gray-200"><strong>${t}</strong> is observed to be <strong>${w[0]}</strong> and <strong>${w[1]}</strong>.</p>
+                <p class="text-gray-400 mt-2">The event is suspected to be caused by a <strong>${w[2]}</strong> entity.</p>`;
+        }
+        function generateThematicHook(){ 
+            const w = getWords(3,'distress'); 
+            document.getElementById('thematic-hook-result').innerHTML = `
+                <div class="text-center p-6 w-card bg-gray-600 border-b-4 border-red">
+                    <p class="text-4xl font-extrabold text-white">${w[0]} & <span class="text-blue">${w[1]}</span></p>
+                    <p class="text-xl font-bold text-gray-300">${w[2]}</p>
+                </div>
+                <p class="text-gray-400 mt-2 text-center">Use these words to define the central crisis or captivity.</p>`; 
+        }
+        
+        function generateConstrainedWords(){
+            const alpha="ABCDEFGHIJKLMNOPQRSTUVWXYZ", res=[];
+            for(let i=0;i<10;i++){
+                const l=alpha[d(26)-1];
+                const match=ADJ_VERB_LEXICON.filter(w=>w.toUpperCase().startsWith(l));
+                const w=match.length?match[d(match.length)-1]:"---";
+                res.push(`<div class="p-2 w-card bg-gray-600 flex items-center"><span class="text-indigo font-extrabold text-xl w-6">${l}</span><span class="ml-2 text-lg text-gray-300">${w}</span></div>`);
+            }
+            document.getElementById('word-expansion-result').innerHTML=`<div class="grid grid-cols-2 gap-4">${res.join('')}</div>`;
+        }
+
+        // Init Tables
+        let h1='<table class="w-table"><tr><th>d6</th><th>General</th><th>Success</th><th>Failure</th></tr>';
+        for(let i=0;i<6;i++) h1+=`<tr><td>${i+1}</td><td>${INTERP_GUIDE.general[i][0]}</td><td>${INTERP_GUIDE.success[i][0]}</td><td>${INTERP_GUIDE.failure[i][0]}</td></tr>`;
+        document.getElementById('interpretation-guide-table').innerHTML=h1+'</table>';
+        
+        let h2='<table class="w-table"><tr><th>d8</th><th>Link</th><th>Focus</th></tr>';
+        for(let i=0;i<8;i++) h2+=`<tr><td>${i+1}</td><td>${EL_LINKS[i][0]}</td><td>${EL_LINKS[i][1]}</td></tr>`;
+        document.getElementById('element-link-table').innerHTML=h2+'</table>';
+
+        // --- PAGE 3: TRACKER LOGIC ---
+        let qts=[];
+        function loadQ(){ const s=localStorage.getItem('mySoloQuests'); if(s){qts=JSON.parse(s); renderQ();} }
+        function saveQ(){ localStorage.setItem('mySoloQuests',JSON.stringify(qts)); }
+        function addQuest(){
+            const n=document.getElementById('newQuestName').value||"Untitled", l=parseInt(document.getElementById('newQuestLength').value)||5;
+            qts.unshift({id:Date.now(),name:n,max:l,mom:0,ten:0,status:'active'});
+            saveQ(); renderQ(); document.getElementById('newQuestName').value="";
+        }
+        function updQ(id,t,v){
+            const q=qts.find(x=>x.id===id); if(!q||q.status!=='active')return;
+            if(t==='mom') q.mom=Math.min(q.max,Math.max(0,q.mom+v));
+            else q.ten=Math.min(q.max,Math.max(0,q.ten+v));
+            if(q.mom>=q.max)q.status='success'; else if(q.ten>=q.max)q.status='fail';
+            saveQ(); renderQ();
+        }
+        function delQ(id){ if(confirm("Delete?")){qts=qts.filter(x=>x.id!==id); saveQ(); renderQ();} }
+        function renderQ(){
+            document.getElementById('questContainer').innerHTML = qts.map(q=>{
+                const mp=(q.mom/q.max)*100, tp=(q.ten/q.max)*100;
+                let b='<span class="status-active" style="background:#333;padding:2px 5px;border-radius:4px;font-size:0.8rem">ACTIVE</span>';
+                if(q.status==='success') b='<span style="background:#2e7d32;padding:2px 5px;border-radius:4px;font-size:0.8rem">DONE</span>';
+                if(q.status==='fail') b='<span style="background:#c62828;padding:2px 5px;border-radius:4px;font-size:0.8rem">FAIL</span>';
+                let t=""; for(let i=0;i<q.max;i++) t+='<div class="tick"></div>';
+                return `<div class="quest-card" style="opacity:${q.status!=='active'?0.7:1}"><div class="quest-header"><h3 class="quest-title">${q.name}</h3><div>${b}<button class="btn-delete" onclick="delQ(${q.id})">&times;</button></div></div>
+                <div class="track-row"><div class="track-info"><span>Success</span><span>${q.mom}/${q.max}</span></div><div class="bar-container"><div class="ticks-layer">${t}</div><div class="bar-fill fill-green" style="width:${mp}%"></div></div><div class="track-controls"><button class="btn-minus" onclick="updQ(${q.id},'mom',-1)">-</button><button class="btn-plus-green" onclick="updQ(${q.id},'mom',1)">Momentum +</button></div></div>
+                <div class="track-row"><div class="track-info"><span>Danger</span><span>${q.ten}/${q.max}</span></div><div class="bar-container"><div class="ticks-layer">${t}</div><div class="bar-fill fill-red" style="width:${tp}%"></div></div><div class="track-controls"><button class="btn-minus" onclick="updQ(${q.id},'ten',-1)">-</button><button class="btn-plus-red" onclick="updQ(${q.id},'ten',1)">Tension +</button></div></div></div>`;
+            }).join('');
+        }
+        loadQ();
+
+    </script>
+</body>
+</html>
